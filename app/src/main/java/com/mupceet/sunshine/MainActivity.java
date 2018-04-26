@@ -3,6 +3,11 @@ package com.mupceet.sunshine;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.mupceet.sunshine.data.SunshinePreferences;
@@ -18,13 +23,17 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView mTvWeatherData;
 
+    private TextView mTvErrorMessage;
+    private ProgressBar mProgressBar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_forecast);
 
         mTvWeatherData = findViewById(R.id.tv_weather_data);
-
+        mTvErrorMessage = findViewById(R.id.tv_error_message);
+        mProgressBar = findViewById(R.id.progress_bar);
 //        String[] dummyWeatherData = {
 //                "Today, May 17 - Clear - 17°C / 15°C",
 //                "Tomorrow - Cloudy - 19°C / 15°C",
@@ -51,11 +60,28 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadWeatherData() {
+        showWeatherDataView();
         String location = SunshinePreferences.getPreferredWeatherLocation(MainActivity.this);
         new FetchWeatherTask().execute(location);
     }
 
+    private void showWeatherDataView() {
+        mTvErrorMessage.setVisibility(View.INVISIBLE);
+        mTvWeatherData.setVisibility(View.VISIBLE);
+    }
+
+
+    private void showErrorMessage() {
+        mTvErrorMessage.setVisibility(View.VISIBLE);
+        mTvWeatherData.setVisibility(View.INVISIBLE);
+    }
+
     private class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
+
+        @Override
+        protected void onPreExecute() {
+            mProgressBar.setVisibility(View.VISIBLE);
+        }
 
         @Override
         protected String[] doInBackground(String... params) {
@@ -83,13 +109,34 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String[] weatherData) {
+            mProgressBar.setVisibility(View.INVISIBLE);
             if (weatherData != null) {
+                showWeatherDataView();
                 for (String weatherString :
                         weatherData) {
                     mTvWeatherData.append(weatherString + "\n\n\n");
                 }
+            } else {
+                showErrorMessage();
             }
         }
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.forecast, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.action_refresh) {
+            mTvWeatherData.setText("");
+            loadWeatherData();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 }
