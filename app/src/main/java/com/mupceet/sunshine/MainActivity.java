@@ -1,11 +1,13 @@
 package com.mupceet.sunshine;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.Layout;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -25,7 +27,8 @@ import java.net.URL;
 
 public class MainActivity extends AppCompatActivity implements ForecastAdapter.ForecastAdapterOnclickHandler {
 
-//    private TextView mTvWeatherData;
+    private static final String TAG = MainActivity.class.getSimpleName();
+    //    private TextView mTvWeatherData;
     private RecyclerView mRecyclerView;
     private ForecastAdapter mForecastAdapter;
 
@@ -97,11 +100,51 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.F
 
     @Override
     public void onForecastAdapterItemClick(String weatherForDay) {
-        if (mToast != null) {
-            mToast.cancel();
+//        if (mToast != null) {
+//            mToast.cancel();
+//        }
+//        mToast = Toast.makeText(this, weatherForDay, Toast.LENGTH_SHORT);
+//        mToast.show();
+        Intent intent = new Intent(this, DetailActivity.class);
+        intent.putExtra(Intent.EXTRA_TEXT, weatherForDay);
+        startActivity(intent);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.forecast, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.action_refresh) {
+//            mTvWeatherData.setText("");
+            mForecastAdapter.setWeatherData(null);
+            loadWeatherData();
+            return true;
+        } else if (id == R.id.action_map) {
+            openLocationInMap();
+            return true;
         }
-        mToast = Toast.makeText(this, weatherForDay, Toast.LENGTH_SHORT);
-        mToast.show();
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void openLocationInMap() {
+        Uri geoLocation = Uri.parse("baidumap://map/place/search?" +
+                "query=美食&region=beijing&location=39.915168,116.403875&radius=1000&bounds=37.8608310000,112.5963090000,42.1942670000,118.9491260000");
+
+        Intent intent = new Intent();
+        intent.setData(geoLocation);
+
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivity(intent);
+        } else {
+            Log.d(TAG, "Couldn't call " + geoLocation.toString()
+                    + ", no receiving apps installed!");
+        }
     }
 
     private class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
@@ -149,24 +192,5 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.F
                 showErrorMessage();
             }
         }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater menuInflater = getMenuInflater();
-        menuInflater.inflate(R.menu.forecast, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.action_refresh) {
-//            mTvWeatherData.setText("");
-            mForecastAdapter.setWeatherData(null);
-            loadWeatherData();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
     }
 }
