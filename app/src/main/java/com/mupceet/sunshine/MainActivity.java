@@ -2,8 +2,12 @@ package com.mupceet.sunshine;
 
 import android.content.Intent;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -25,16 +29,17 @@ import org.json.JSONException;
 import java.io.IOException;
 import java.net.URL;
 
-public class MainActivity extends AppCompatActivity implements ForecastAdapter.ForecastAdapterOnclickHandler {
+public class MainActivity extends AppCompatActivity
+        implements ForecastAdapter.ForecastAdapterOnclickHandler,
+        LoaderManager.LoaderCallbacks<String[]> {
 
     private static final String TAG = MainActivity.class.getSimpleName();
+    private static final int FORECAST_LOADER_ID = 22;
     //    private TextView mTvWeatherData;
     private RecyclerView mRecyclerView;
     private ForecastAdapter mForecastAdapter;
-
     private TextView mTvErrorMessage;
     private ProgressBar mProgressBar;
-
     private Toast mToast;
 
     @Override
@@ -76,14 +81,15 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.F
 //            mTvWeatherData.append(dummyWeatherDay + "\n\n\n");
 //        }
 
-        loadWeatherData();
+//        loadWeatherData();
+        getSupportLoaderManager().initLoader(FORECAST_LOADER_ID, null, this);
     }
 
-    private void loadWeatherData() {
-        showWeatherDataView();
-        String location = SunshinePreferences.getPreferredWeatherLocation(MainActivity.this);
-        new FetchWeatherTask().execute(location);
-    }
+//    private void loadWeatherData() {
+//        showWeatherDataView();
+//        String location = SunshinePreferences.getPreferredWeatherLocation(MainActivity.this);
+//        new FetchWeatherTask().execute(location);
+//    }
 
     private void showWeatherDataView() {
         mTvErrorMessage.setVisibility(View.INVISIBLE);
@@ -123,7 +129,8 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.F
         if (id == R.id.action_refresh) {
 //            mTvWeatherData.setText("");
             mForecastAdapter.setWeatherData(null);
-            loadWeatherData();
+//            loadWeatherData();
+            getSupportLoaderManager().restartLoader(FORECAST_LOADER_ID, null, this);
             return true;
         } else if (id == R.id.action_map) {
             openLocationInMap();
@@ -147,50 +154,112 @@ public class MainActivity extends AppCompatActivity implements ForecastAdapter.F
         }
     }
 
-    private class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
+    @NonNull
+    @Override
+    public Loader<String[]> onCreateLoader(int id, @Nullable Bundle args) {
+        return new AsyncTaskLoader<String[]>(this) {
 
-        @Override
-        protected void onPreExecute() {
-            mProgressBar.setVisibility(View.VISIBLE);
-        }
+            String[] mWeatherData = null;
 
-        @Override
-        protected String[] doInBackground(String... params) {
-
-            if (params.length == 0) {
-                return null;
+            @Override
+            protected void onStartLoading() {
+                if (mWeatherData != null) {
+                    deliverResult(mWeatherData);
+                } else {
+                    mProgressBar.setVisibility(View.VISIBLE);
+                    forceLoad();
+                }
             }
 
-            String location = params[0];
-            URL weatherRequestUrl = NetworkUtils.buildUrl(location);
+            @Nullable
+            @Override
+            public String[] loadInBackground() {
+                String location = SunshinePreferences.getPreferredWeatherLocation(MainActivity.this);
+                URL weatherRequestUrl = NetworkUtils.buildUrl(location);
 
-            try {
-                String jsonWeatherResponse = NetworkUtils.getResponseFromHttpUrl(weatherRequestUrl);
-                String[] simpleJsonWeatherData = OpenWeatherJsonUtils
-                        .getSimpleWeatherStringsFromJson(MainActivity.this, jsonWeatherResponse);
-                return simpleJsonWeatherData;
-            } catch (IOException e) {
-                e.printStackTrace();
-                return null;
-            } catch (JSONException e) {
-                e.printStackTrace();
+                try {
+                    String jsonWeatherResponse = NetworkUtils.getResponseFromHttpUrl(weatherRequestUrl);
+                    String[] simpleJsonWeatherData = OpenWeatherJsonUtils
+                            .getSimpleWeatherStringsFromJson(MainActivity.this, jsonWeatherResponse);
+                    return simpleJsonWeatherData;
+                } catch (IOException | JSONException e) {
+                    e.printStackTrace();
+                    return null;
+                }
             }
-            return new String[0];
-        }
 
-        @Override
-        protected void onPostExecute(String[] weatherData) {
-            mProgressBar.setVisibility(View.INVISIBLE);
-            if (weatherData != null) {
-                showWeatherDataView();
+            @Override
+            public void deliverResult(@Nullable String[] data) {
+                mWeatherData = data;
+                super.deliverResult(data);
+            }
+        };
+    }
+
+    @Override
+    public void onLoadFinished(@NonNull Loader<String[]> loader, String[] data) {
+        mProgressBar.setVisibility(View.INVISIBLE);
+        mForecastAdapter.setWeatherData(data);
+        if (data != null) {
+            showWeatherDataView();
 //                for (String weatherString :
 //                        weatherData) {
 //                    mTvWeatherData.append(weatherString + "\n\n\n");
 //                }
-                mForecastAdapter.setWeatherData(weatherData);
-            } else {
-                showErrorMessage();
-            }
+        } else {
+            showErrorMessage();
         }
     }
+
+    @Override
+    public void onLoaderReset(@NonNull Loader<String[]> loader) {
+
+    }
+
+//    private class FetchWeatherTask extends AsyncTask<String, Void, String[]> {
+//
+//        @Override
+//        protected void onPreExecute() {
+//            mProgressBar.setVisibility(View.VISIBLE);
+//        }
+//
+//        @Override
+//        protected String[] doInBackground(String... params) {
+//
+//            if (params.length == 0) {
+//                return null;
+//            }
+//
+//            String location = params[0];
+//            URL weatherRequestUrl = NetworkUtils.buildUrl(location);
+//
+//            try {
+//                String jsonWeatherResponse = NetworkUtils.getResponseFromHttpUrl(weatherRequestUrl);
+//                String[] simpleJsonWeatherData = OpenWeatherJsonUtils
+//                        .getSimpleWeatherStringsFromJson(MainActivity.this, jsonWeatherResponse);
+//                return simpleJsonWeatherData;
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//                return null;
+//            } catch (JSONException e) {
+//                e.printStackTrace();
+//            }
+//            return new String[0];
+//        }
+//
+//        @Override
+//        protected void onPostExecute(String[] weatherData) {
+//            mProgressBar.setVisibility(View.INVISIBLE);
+//            if (weatherData != null) {
+//                showWeatherDataView();
+////                for (String weatherString :
+////                        weatherData) {
+////                    mTvWeatherData.append(weatherString + "\n\n\n");
+////                }
+//                mForecastAdapter.setWeatherData(weatherData);
+//            } else {
+//                showErrorMessage();
+//            }
+//        }
+//    }
 }
