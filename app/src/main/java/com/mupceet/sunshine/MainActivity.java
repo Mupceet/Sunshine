@@ -1,8 +1,10 @@
 package com.mupceet.sunshine;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.LoaderManager;
@@ -31,10 +33,12 @@ import java.net.URL;
 
 public class MainActivity extends AppCompatActivity
         implements ForecastAdapter.ForecastAdapterOnclickHandler,
-        LoaderManager.LoaderCallbacks<String[]> {
+        LoaderManager.LoaderCallbacks<String[]>,
+        SharedPreferences.OnSharedPreferenceChangeListener{
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int FORECAST_LOADER_ID = 22;
+    private static boolean PREFERENCES_HAVE_BEEN_UPDATE = false;
     //    private TextView mTvWeatherData;
     private RecyclerView mRecyclerView;
     private ForecastAdapter mForecastAdapter;
@@ -83,9 +87,29 @@ public class MainActivity extends AppCompatActivity
 
 //        loadWeatherData();
         getSupportLoaderManager().initLoader(FORECAST_LOADER_ID, null, this);
+
+        PreferenceManager.getDefaultSharedPreferences(this)
+                .registerOnSharedPreferenceChangeListener(this);
     }
 
-//    private void loadWeatherData() {
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (PREFERENCES_HAVE_BEEN_UPDATE) {
+            mForecastAdapter.setWeatherData(null);
+            getSupportLoaderManager().restartLoader(FORECAST_LOADER_ID, null, this);
+            PREFERENCES_HAVE_BEEN_UPDATE = false;
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        PreferenceManager.getDefaultSharedPreferences(this)
+                .unregisterOnSharedPreferenceChangeListener(this);
+    }
+
+    //    private void loadWeatherData() {
 //        showWeatherDataView();
 //        String location = SunshinePreferences.getPreferredWeatherLocation(MainActivity.this);
 //        new FetchWeatherTask().execute(location);
@@ -135,15 +159,18 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.action_map) {
             openLocationInMap();
             return true;
+        } else if (id == R.id.action_settings) {
+            startActivity(new Intent(this, SettingsActivity.class));
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
     private void openLocationInMap() {
-        Uri geoLocation = Uri.parse("baidumap://map/place/search?" +
-                "query=美食&region=beijing&location=39.915168,116.403875&radius=1000&bounds=37.8608310000,112.5963090000,42.1942670000,118.9491260000");
+        String addressString = SunshinePreferences.getPreferredWeatherLocation(this);
+        Uri geoLocation = Uri.parse("geo:0,0?q=" + addressString);
 
-        Intent intent = new Intent();
+        Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setData(geoLocation);
 
         if (intent.resolveActivity(getPackageManager()) != null) {
@@ -214,6 +241,11 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onLoaderReset(@NonNull Loader<String[]> loader) {
 
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        PREFERENCES_HAVE_BEEN_UPDATE = true;
     }
 
 //    private class FetchWeatherTask extends AsyncTask<String, Void, String[]> {

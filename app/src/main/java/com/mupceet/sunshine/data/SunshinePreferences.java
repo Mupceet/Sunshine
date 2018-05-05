@@ -16,6 +16,10 @@
 package com.mupceet.sunshine.data;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.support.v7.preference.PreferenceManager;
+
+import com.mupceet.sunshine.R;
 
 public class SunshinePreferences {
 
@@ -87,8 +91,11 @@ public class SunshinePreferences {
      * "94043,USA" if SharedPreferences have not been implemented yet.
      */
     public static String getPreferredWeatherLocation(Context context) {
-        /** This will be implemented in a future lesson **/
-        return getDefaultWeatherLocation();
+        SharedPreferences sharedPreferences =
+                PreferenceManager.getDefaultSharedPreferences(context);
+        String keyForLocation = context.getString(R.string.pref_location_key);
+        String defaultLocation = context.getString(R.string.pref_location_default);
+        return sharedPreferences.getString(keyForLocation, defaultLocation);
     }
 
     /**
@@ -98,8 +105,21 @@ public class SunshinePreferences {
      * @return true If metric display should be used
      */
     public static boolean isMetric(Context context) {
-        /** This will be implemented in a future lesson **/
-        return true;
+        SharedPreferences sharedPreferences =
+                PreferenceManager.getDefaultSharedPreferences(context);
+        String keyForUnits = context.getString(R.string.pref_units_key);
+        String defaltUnits = context.getString(R.string.pref_units_metric);
+        String prefUnits = sharedPreferences.getString(keyForUnits, defaltUnits);
+
+        String metric = context.getString(R.string.pref_units_metric);
+        boolean isMetric;
+        if (metric.equals(prefUnits)) {
+            isMetric = true;
+        } else {
+            isMetric = false;
+        }
+
+        return isMetric;
     }
 
     /**

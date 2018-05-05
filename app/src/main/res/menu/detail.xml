@@ -5,6 +5,11 @@
         android:id="@+id/action_share"
         android:icon="@drawable/abc_ic_menu_share_mtrl_alpha"
         android:title="@string/menu_share"
-        app:showAsAction="always"/>
+        app:showAsAction="ifRoom"/>
+
+    <item
+        android:id="@+id/action_settings"
+        android:title="@string/menu_settings"
+        app:showAsAction="never" />
 
 </menu>
