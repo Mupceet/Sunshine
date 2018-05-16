@@ -129,7 +129,24 @@ public class WeatherProvider extends ContentProvider {
 
     @Override
     public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
-        throw new UnsupportedOperationException("You should implement delete method!");
+        final SQLiteDatabase db = mDbHelper.getWritableDatabase();
+        int code = sUriMatcher.match(uri);
+
+        if (selection == null) {
+            selection = "1";
+        }
+        int rowsDeleted = 0;
+        switch (code) {
+            case CODE_WEATHER:
+                rowsDeleted = db.delete(WeatherContract.WeatherEntry.TABLE_NAME,
+                        selection, selectionArgs);
+                break;
+        }
+
+        if (rowsDeleted != 0) {
+            Objects.requireNonNull(getContext()).getContentResolver().notifyChange(uri, null);
+        }
+        return rowsDeleted;
     }
 
     @Override
