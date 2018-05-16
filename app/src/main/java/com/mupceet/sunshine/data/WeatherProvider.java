@@ -9,6 +9,8 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.mupceet.sunshine.utilities.SunshineDateUtils;
+
 import java.util.Objects;
 
 public class WeatherProvider extends ContentProvider {
@@ -71,8 +73,8 @@ public class WeatherProvider extends ContentProvider {
 
                 break;
 
-                default:
-                    throw new UnsupportedOperationException("Unknown uri: " + uri);
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
 
         result.setNotificationUri(Objects.requireNonNull(getContext()).getContentResolver(), uri);
@@ -82,22 +84,56 @@ public class WeatherProvider extends ContentProvider {
     @Nullable
     @Override
     public String getType(@NonNull Uri uri) {
-        return null;
+        throw new UnsupportedOperationException("You should implement getType method!");
     }
 
     @Nullable
     @Override
     public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
-        return null;
+        throw new UnsupportedOperationException("You should implement insert method!");
+    }
+
+    @Override
+    public int bulkInsert(@NonNull Uri uri, @NonNull ContentValues[] values) {
+        final SQLiteDatabase db = mDbHelper.getWritableDatabase();
+        int code = sUriMatcher.match(uri);
+        switch (code) {
+            case CODE_WEATHER:
+                db.beginTransaction();
+                int rowsInserted = 0;
+                try {
+                    for (ContentValues value : values) {
+                        long weatherDate =
+                                value.getAsLong(WeatherContract.WeatherEntry.COLUMN_DATE);
+                        if (!SunshineDateUtils.isDateNormalized(weatherDate)) {
+                            throw new IllegalArgumentException("Date must be normalized to insert");
+                        }
+                        long id = db.insert(WeatherContract.WeatherEntry.TABLE_NAME, null, value);
+                        if (id != -1) {
+                            rowsInserted++;
+                        }
+                    }
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+                if (rowsInserted > 0) {
+                    Objects.requireNonNull(getContext()).getContentResolver().notifyChange(uri, null);
+                }
+
+                return rowsInserted;
+            default:
+                return super.bulkInsert(uri, values);
+        }
     }
 
     @Override
     public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
-        return 0;
+        throw new UnsupportedOperationException("You should implement delete method!");
     }
 
     @Override
     public int update(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
-        return 0;
+        throw new UnsupportedOperationException("You should implement update method!");
     }
 }
