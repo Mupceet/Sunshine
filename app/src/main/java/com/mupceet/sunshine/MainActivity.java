@@ -141,14 +141,16 @@ public class MainActivity extends AppCompatActivity
 //    }
 
     @Override
-    public void onForecastAdapterItemClick(String weatherForDay) {
+    public void onForecastAdapterItemClick(long date) {
 //        if (mToast != null) {
 //            mToast.cancel();
 //        }
 //        mToast = Toast.makeText(this, weatherForDay, Toast.LENGTH_SHORT);
 //        mToast.show();
         Intent intent = new Intent(this, DetailActivity.class);
-        intent.putExtra(Intent.EXTRA_TEXT, weatherForDay);
+//        intent.putExtra(Intent.EXTRA_TEXT, weatherForDay);
+        Uri uriForDate = WeatherContract.WeatherEntry.buildWeatherUriWithDate(date);
+        intent.setData(uriForDate);
         startActivity(intent);
     }
 
