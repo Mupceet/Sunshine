@@ -3,6 +3,8 @@ package com.mupceet.sunshine.data;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
+import com.mupceet.sunshine.utilities.SunshineDateUtils;
+
 public class WeatherContract {
 
     private WeatherContract() {
@@ -29,6 +31,11 @@ public class WeatherContract {
 
         public static Uri buildWeatherUriWithDate(long date) {
             return CONTENT_URI.buildUpon().appendPath(Long.toString(date)).build();
+        }
+
+        public static String getSqlSelectForTodayOnwards() {
+            long normalizedUtcNow = SunshineDateUtils.normalizeDate(System.currentTimeMillis());
+            return WeatherEntry.COLUMN_DATE + " >= " + normalizedUtcNow;
         }
     }
 }
