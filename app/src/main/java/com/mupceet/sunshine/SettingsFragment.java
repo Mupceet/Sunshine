@@ -8,6 +8,9 @@ import android.support.v7.preference.ListPreference;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceScreen;
 
+import com.mupceet.sunshine.data.SunshinePreferences;
+import com.mupceet.sunshine.sync.SunshineSyncUtils;
+
 public class SettingsFragment extends PreferenceFragment
         implements /*Preference.OnPreferenceChangeListener,*/
         SharedPreferences.OnSharedPreferenceChangeListener {
@@ -59,6 +62,11 @@ public class SettingsFragment extends PreferenceFragment
     private void setPreferenceSummary(Preference preference, Object value) {
         String valueString = value.toString();
         String key = preference.getKey();
+
+        if (getString(R.string.pref_location_key).equals(key)) {
+            SunshinePreferences.resetLocationCoordinates(getContext());
+            SunshineSyncUtils.startImmediateSync(getContext());
+        }
 
         if (preference instanceof ListPreference) {
             ListPreference listPreference = (ListPreference) preference;

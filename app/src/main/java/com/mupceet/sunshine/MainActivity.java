@@ -24,6 +24,7 @@ import android.widget.Toast;
 
 import com.mupceet.sunshine.data.SunshinePreferences;
 import com.mupceet.sunshine.data.WeatherContract;
+import com.mupceet.sunshine.sync.SunshineSyncUtils;
 import com.mupceet.sunshine.utilities.FakeDataUtils;
 
 public class MainActivity extends AppCompatActivity
@@ -59,7 +60,7 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_forecast);
 
-        FakeDataUtils.insertFakeData(this);
+//        FakeDataUtils.insertFakeData(this);
 
 //        mTvWeatherData = findViewById(R.id.tv_weather_data);
         mRecyclerView = findViewById(R.id.recyclerview_forecast);
@@ -101,6 +102,7 @@ public class MainActivity extends AppCompatActivity
 
 //        PreferenceManager.getDefaultSharedPreferences(this)
 //                .registerOnSharedPreferenceChangeListener(this);
+        SunshineSyncUtils.initialize(this);
     }
 
     @Override

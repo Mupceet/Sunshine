@@ -32,8 +32,17 @@
 
         <provider
             android:name=".data.WeatherProvider"
-            android:authorities="com.mupceet.sunshine"
-            />
+            android:authorities="com.mupceet.sunshine" />
+
+        <service
+            android:name=".sync.SunshineSyncIntentService"
+            android:exported="false" />
+        <service android:name=".sync.SunshineFirebaseJobService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.firebase.jobdispatcher.ACTION_EXECUTE"/>
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

@@ -83,6 +83,12 @@ public class SunshinePreferences {
      */
     static public void resetLocationCoordinates(Context c) {
         /** This will be implemented in a future lesson **/
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(c);
+        SharedPreferences.Editor editor = sp.edit();
+
+        editor.remove(PREF_COORD_LAT);
+        editor.remove(PREF_COORD_LONG);
+        editor.apply();
     }
 
     /**
