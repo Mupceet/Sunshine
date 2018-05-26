@@ -24,7 +24,9 @@ import android.widget.Toast;
 
 import com.mupceet.sunshine.data.SunshinePreferences;
 import com.mupceet.sunshine.data.WeatherContract;
+import com.mupceet.sunshine.sync.SunshineSyncTask;
 import com.mupceet.sunshine.sync.SunshineSyncUtils;
+import com.mupceet.sunshine.utilities.AppExecutors;
 import com.mupceet.sunshine.utilities.FakeDataUtils;
 
 public class MainActivity extends AppCompatActivity
@@ -170,7 +172,13 @@ public class MainActivity extends AppCompatActivity
 //            mTvWeatherData.setText("");
 //            mForecastAdapter.setWeatherData(null);
 //            loadWeatherData();
-            getSupportLoaderManager().restartLoader(FORECAST_LOADER_ID, null, this);
+//            getSupportLoaderManager().restartLoader(FORECAST_LOADER_ID, null, this);
+            AppExecutors.getInstance().networkIO().execute(new Runnable() {
+                @Override
+                public void run() {
+                    SunshineSyncTask.syncWeather(MainActivity.this);
+                }
+            });
             return true;
         } else if (id == R.id.action_map) {
             openLocationInMap();
