@@ -7,6 +7,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.mupceet.sunshine.utilities.SunshineDateUtils;
@@ -52,20 +53,31 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.Foreca
 //        holder.mWeatherTextView.setText(weatherForThisDay);
         mCursor.moveToPosition(position);
 
+
         long dateMillis = mCursor.getLong(INDEX_COLUMN_DATE);
         String dateString = SunshineDateUtils.getFriendlyDateString(mContext, dateMillis, false);
+        holder.dateView.setText(dateString);
 
         int weatherId = mCursor.getInt(INDEX_COLUMN_WEATHER_ID);
+        int weatherImageId = SunshineWeatherUtils.getSmallArtResourceIdForWeatherCondition(weatherId);
+        holder.iconView.setImageResource(weatherImageId);
         String description = SunshineWeatherUtils.getStringForWeatherCondition(mContext, weatherId);
-
+        holder.descriptionView.setText(description);
+        holder.descriptionView.setContentDescription(mContext.getString(R.string.ally_forecast, description));
         double highInCelsius = mCursor.getDouble(INDEX_COLUMN_MAX_TEMP);
         double lowInCelsius = mCursor.getDouble(INDEX_COLUMN_MIN_TEMP);
-        String highAndLowTemperature =
-                SunshineWeatherUtils.formatHighLows(mContext, highInCelsius, lowInCelsius);
+//        String highAndLowTemperature =
+//                SunshineWeatherUtils.formatHighLows(mContext, highInCelsius, lowInCelsius);
+        String highString = SunshineWeatherUtils.formatTemperature(mContext, highInCelsius);
+        holder.highTempView.setText(highString);
+        holder.highTempView.setContentDescription(mContext.getString(R.string.ally_high_temp, highString));
+        String lowString = SunshineWeatherUtils.formatTemperature(mContext, lowInCelsius);
+        holder.lowTempView.setText(lowString);
+        holder.lowTempView.setContentDescription(mContext.getString(R.string.ally_low_temp, lowString));
 
-        String weatherSummary = dateString + " - " + description + " - " + highAndLowTemperature;
-
-        holder.mWeatherTextView.setText(weatherSummary);
+//        String weatherSummary = dateString + " - " + description + " - " + highAndLowTemperature;
+//
+//        holder.mWeatherTextView.setText(weatherSummary);
 
     }
 
@@ -92,11 +104,22 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.Foreca
 
     public class ForecastAdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
-        public final TextView mWeatherTextView;
+//        public final TextView mWeatherTextView;
+        final TextView dateView;
+        final TextView descriptionView;
+        final TextView highTempView;
+        final TextView lowTempView;
+        final ImageView iconView;
+
 
         public ForecastAdapterViewHolder(View itemView) {
             super(itemView);
-            mWeatherTextView = itemView.findViewById(R.id.tv_weather_data);
+//            mWeatherTextView = itemView.findViewById(R.id.tv_weather_data);
+            dateView = itemView.findViewById(R.id.tv_date);
+            descriptionView = itemView.findViewById(R.id.weather_description);
+            highTempView = itemView.findViewById(R.id.high_temperature);
+            lowTempView = itemView.findViewById(R.id.low_temperature);
+            iconView = itemView.findViewById(R.id.weather_icon);
             itemView.setOnClickListener(this);
         }
 
