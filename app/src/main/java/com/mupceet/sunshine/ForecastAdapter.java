@@ -20,14 +20,20 @@ import static com.mupceet.sunshine.MainActivity.INDEX_COLUMN_WEATHER_ID;
 
 public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.ForecastAdapterViewHolder> {
 
+    private static final int VIEW_TYPE_TODAY = 0;
+    private static final int VIEW_TYPE_FUTURE_DAY = 1;
+
     //    private String[] mWeatherData;
     private final Context mContext;
     private ForecastAdapterOnclickHandler mClickHandler;
     private Cursor mCursor;
 
+    private boolean mUseTodayLayout;
+
     public ForecastAdapter(ForecastAdapterOnclickHandler clickHandler, Context context) {
         mClickHandler = clickHandler;
         mContext = context;
+        mUseTodayLayout = context.getResources().getBoolean(R.bool.use_today_layout);
     }
 
     public void swapCursor(Cursor newCursor) {
@@ -39,11 +45,17 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.Foreca
     @Override
     public ForecastAdapterViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         Context context = parent.getContext();
-        int layoutIdForListItem = R.layout.forecast_list_item;
         LayoutInflater inflater = LayoutInflater.from(context);
-        boolean shouldAttachToParentImmediately = false;
-
-        View view = inflater.inflate(layoutIdForListItem, parent, shouldAttachToParentImmediately);
+        int layoutId;
+        if (VIEW_TYPE_TODAY == viewType) {
+            layoutId = R.layout.list_item_forecast_today;
+        } else if (VIEW_TYPE_FUTURE_DAY == viewType) {
+            layoutId = R.layout.forecast_list_item;
+        } else {
+            throw new IllegalArgumentException("Invalid view type: " + viewType);
+        }
+        View view = inflater.inflate(layoutId, parent, false);
+        view.setFocusable(true);
         return new ForecastAdapterViewHolder(view);
     }
 
@@ -52,15 +64,26 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.Foreca
 //        String weatherForThisDay = mWeatherData[position];
 //        holder.mWeatherTextView.setText(weatherForThisDay);
         mCursor.moveToPosition(position);
-
-
         long dateMillis = mCursor.getLong(INDEX_COLUMN_DATE);
         String dateString = SunshineDateUtils.getFriendlyDateString(mContext, dateMillis, false);
         holder.dateView.setText(dateString);
 
+        int viewType = getItemViewType(position);
         int weatherId = mCursor.getInt(INDEX_COLUMN_WEATHER_ID);
-        int weatherImageId = SunshineWeatherUtils.getSmallArtResourceIdForWeatherCondition(weatherId);
+
+        int weatherImageId;
+        switch (viewType) {
+            case VIEW_TYPE_TODAY:
+                weatherImageId = SunshineWeatherUtils.getLargeArtResourceIdForWeatherCondition(weatherId);
+                break;
+            case VIEW_TYPE_FUTURE_DAY:
+                weatherImageId = SunshineWeatherUtils.getSmallArtResourceIdForWeatherCondition(weatherId);
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid view type: " + viewType);
+        }
         holder.iconView.setImageResource(weatherImageId);
+
         String description = SunshineWeatherUtils.getStringForWeatherCondition(mContext, weatherId);
         holder.descriptionView.setText(description);
         holder.descriptionView.setContentDescription(mContext.getString(R.string.ally_forecast, description));
@@ -98,13 +121,23 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastAdapter.Foreca
 //        notifyDataSetChanged();
 //    }
 
+
+    @Override
+    public int getItemViewType(int position) {
+        if (mUseTodayLayout && position == 0) {
+            return VIEW_TYPE_TODAY;
+        } else {
+            return VIEW_TYPE_FUTURE_DAY;
+        }
+    }
+
     public interface ForecastAdapterOnclickHandler {
         void onForecastAdapterItemClick(long date);
     }
 
     public class ForecastAdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
-//        public final TextView mWeatherTextView;
+        //        public final TextView mWeatherTextView;
         final TextView dateView;
         final TextView descriptionView;
         final TextView highTempView;
