@@ -106,10 +106,13 @@
     </string>
 
     <!--Humidity format-->
-    <string name="humidity_label">Pressure</string>
+    <string name="humidity_label">Humidity</string>
     <string name="format_humidity">
         <xliff:g id="temp">%1.0f</xliff:g> %%
     </string>
+
+    <!--Humidity format-->
+    <string name="wind_label">Wind</string>
 
 
     <!-- Weather Conditions (From OpenWeatherMap) -->

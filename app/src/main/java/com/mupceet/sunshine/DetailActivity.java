@@ -2,6 +2,8 @@ package com.mupceet.sunshine;
 
 import android.content.Intent;
 import android.database.Cursor;
+import android.databinding.DataBindingComponent;
+import android.databinding.DataBindingUtil;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -19,6 +21,7 @@ import android.view.MenuItem;
 import android.widget.TextView;
 
 import com.mupceet.sunshine.data.WeatherContract;
+import com.mupceet.sunshine.databinding.ActivityDetailBinding;
 import com.mupceet.sunshine.utilities.SunshineDateUtils;
 import com.mupceet.sunshine.utilities.SunshineWeatherUtils;
 
@@ -51,28 +54,30 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
 //    private TextView mTvWeatherDisplay;
     private Uri mUri;
 
-    private TextView mTvDate;
-    private TextView mTvDescription;
-    private TextView mTvMaxTemp;
-    private TextView mTvMinTemp;
-    private TextView mTvHumidity;
-    private TextView mTvPressure;
-    private TextView mTvWind;
+//    private TextView mTvDate;
+//    private TextView mTvDescription;
+//    private TextView mTvMaxTemp;
+//    private TextView mTvMinTemp;
+//    private TextView mTvHumidity;
+//    private TextView mTvPressure;
+//    private TextView mTvWind;
+    private ActivityDetailBinding mDetailBinding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_detail);
+//        setContentView(R.layout.activity_detail);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
 //        mTvWeatherDisplay = findViewById(R.id.tv_display_weather);
-        mTvDate = findViewById(R.id.tv_date);
-        mTvDescription = findViewById(R.id.tv_description);
-        mTvMaxTemp = findViewById(R.id.tv_max_temp);
-        mTvMinTemp = findViewById(R.id.tv_min_temp);
-        mTvHumidity = findViewById(R.id.tv_humidity);
-        mTvPressure = findViewById(R.id.tv_pressure);
-        mTvWind = findViewById(R.id.tv_wind);
+//        mTvDate = findViewById(R.id.tv_date);
+//        mTvDescription = findViewById(R.id.tv_description);
+//        mTvMaxTemp = findViewById(R.id.tv_max_temp);
+//        mTvMinTemp = findViewById(R.id.tv_min_temp);
+//        mTvHumidity = findViewById(R.id.tv_humidity);
+//        mTvPressure = findViewById(R.id.tv_pressure);
+//        mTvWind = findViewById(R.id.tv_wind);
+        mDetailBinding = DataBindingUtil.setContentView(this, R.layout.activity_detail);
 
 
 //        Intent intentThatStartedThisActivity = getIntent();
@@ -163,19 +168,28 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         long localDateMidnightGmt = data.getLong(INDEX_COLUMN_DATE);
         String dateText = SunshineDateUtils.getFriendlyDateString(this, localDateMidnightGmt, true);
 
-        mTvDate.setText(dateText);
+//        mTvDate.setText(dateText);
+        mDetailBinding.primaryInfo.tvDate.setText(dateText);
+
+        /****************
+         * Weather Icon *
+         ****************/
+        int weatherId = data.getInt(INDEX_COLUMN_WEATHER_ID);
+        int weatherImageId = SunshineWeatherUtils.getLargeArtResourceIdForWeatherCondition(weatherId);
+
+        mDetailBinding.primaryInfo.weatherIcon.setImageResource(weatherImageId);
 
 //      COMPLETED (27) Display the weather description (using SunshineWeatherUtils)
         /***********************
          * Weather Description *
          ***********************/
         /* Read weather condition ID from the cursor (ID provided by Open Weather Map) */
-        int weatherId = data.getInt(INDEX_COLUMN_WEATHER_ID);
         /* Use the weatherId to obtain the proper description */
         String description = SunshineWeatherUtils.getStringForWeatherCondition(this, weatherId);
 
         /* Set the text */
-        mTvDescription.setText(description);
+//        mTvDescription.setText(description);
+        mDetailBinding.primaryInfo.weatherDescription.setText(description);
 
 //      COMPLETED (28) Display the high temperature
         /**************************
@@ -191,7 +205,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         String highString = SunshineWeatherUtils.formatTemperature(this, highInCelsius);
 
         /* Set the text */
-        mTvMaxTemp.setText(highString);
+        mDetailBinding.primaryInfo.highTemperature.setText(highString);
 
 //      COMPLETED (29) Display the low temperature
         /*************************
@@ -207,7 +221,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         String lowString = SunshineWeatherUtils.formatTemperature(this, lowInCelsius);
 
         /* Set the text */
-        mTvMinTemp.setText(lowString);
+        mDetailBinding.primaryInfo.lowTemperature.setText(lowString);
 
 //      COMPLETED (30) Display the humidity
         /************
@@ -218,7 +232,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         String humidityString = getString(R.string.format_humidity, humidity);
 
         /* Set the text */
-        mTvHumidity.setText(humidityString);
+        mDetailBinding.extraDetails.humidity.setText(humidityString);
 
 //      COMPLETED (31) Display the wind speed and direction
         /****************************
@@ -230,7 +244,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         String windString = SunshineWeatherUtils.getFormattedWind(this, windSpeed, windDirection);
 
         /* Set the text */
-        mTvWind.setText(windString);
+        mDetailBinding.extraDetails.wind.setText(windString);
 
 //      COMPLETED (32) Display the pressure
         /************
@@ -249,7 +263,7 @@ public class DetailActivity extends AppCompatActivity implements LoaderManager.L
         String pressureString = getString(R.string.format_pressure, pressure);
 
         /* Set the text */
-        mTvPressure.setText(pressureString);
+        mDetailBinding.extraDetails.pressure.setText(pressureString);
 
 //      COMPLETED (33) Store a forecast summary in mForecastSummary
         /* Store the forecast summary String in our forecast summary field to share later */
